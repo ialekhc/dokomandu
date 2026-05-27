@@ -123,11 +123,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 const SizedBox(height: AppSpacing.md),
                 OfferBannerCarousel(banners: data.feed.offers),
                 const SizedBox(height: AppSpacing.lg),
-                SectionHeader(
-                  title: 'Categories',
-                  subtitle: 'Explore what you are craving today',
-                  actionLabel: 'See all',
-                  onActionTap: () {},
+                Text(
+                  "WHAT'S ON YOUR MIND?",
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Explore what you are craving today',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 CategoryChips(categories: data.feed.categories),

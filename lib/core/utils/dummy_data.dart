@@ -188,11 +188,16 @@ class DummyData {
   static HomeFeedModel homeFeed() {
     return HomeFeedModel(
       categories: const [
-        FoodCategory(id: 'cat_1', name: 'Momo'),
-        FoodCategory(id: 'cat_2', name: 'Biryani'),
-        FoodCategory(id: 'cat_3', name: 'Pizza'),
-        FoodCategory(id: 'cat_4', name: 'Healthy'),
-        FoodCategory(id: 'cat_5', name: 'Snacks'),
+        FoodCategory(id: 'cat_1', name: 'Desserts & Bakery'),
+        FoodCategory(id: 'cat_2', name: 'Chaat'),
+        FoodCategory(id: 'cat_3', name: 'Iced Coffee'),
+        FoodCategory(id: 'cat_4', name: 'Shakes'),
+        FoodCategory(id: 'cat_5', name: 'Party Specials'),
+        FoodCategory(id: 'cat_6', name: 'Desk Friendly'),
+        FoodCategory(id: 'cat_7', name: 'Finger Food'),
+        FoodCategory(id: 'cat_8', name: 'Coolers'),
+        FoodCategory(id: 'cat_9', name: 'Momo'),
+        FoodCategory(id: 'cat_10', name: 'Pizza'),
       ],
       offers: const [
         OfferBanner(
