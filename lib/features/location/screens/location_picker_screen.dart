@@ -6,8 +6,8 @@ import 'package:dokomandu/core/widgets/app_primary_button.dart';
 import 'package:dokomandu/features/location/viewmodels/location_viewmodel.dart';
 import 'package:dokomandu/features/location/widgets/address_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class LocationPickerScreen extends ConsumerWidget {
   const LocationPickerScreen({super.key});
@@ -42,22 +42,44 @@ class LocationPickerScreen extends ConsumerWidget {
               Expanded(
                 child: Stack(
                   children: [
-                    GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: state.selectedPoint!,
-                        zoom: 15,
+                    FlutterMap(
+                      options: MapOptions(
+                        initialCenter: state.selectedPoint!,
+                        initialZoom: 15,
+                        onTap: (_, point) => ref
+                            .read(locationViewModelProvider.notifier)
+                            .updateSelectedPoint(point),
                       ),
-                      myLocationEnabled: true,
-                      myLocationButtonEnabled: true,
-                      onTap: (point) => ref
-                          .read(locationViewModelProvider.notifier)
-                          .updateSelectedPoint(point),
-                      markers: {
-                        Marker(
-                          markerId: const MarkerId('selected'),
-                          position: state.selectedPoint!,
+                      children: [
+                        TileLayer(
+                          urlTemplate:
+                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.example.dokomandu',
+                          maxZoom: 19,
                         ),
-                      },
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              width: 46,
+                              height: 46,
+                              point: state.selectedPoint!,
+                              child: Icon(
+                                Icons.location_pin,
+                                size: 40,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        RichAttributionWidget(
+                          attributions: [
+                            TextSourceAttribution(
+                              'OpenStreetMap contributors',
+                              onTap: () {},
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                     Positioned(
                       left: AppSpacing.md,

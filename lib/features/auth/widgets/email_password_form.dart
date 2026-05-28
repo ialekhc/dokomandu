@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class EmailPasswordForm extends StatelessWidget {
   const EmailPasswordForm({
-    required this.emailController,
+    required this.phoneController,
     required this.passwordController,
     required this.isLoading,
     required this.obscurePassword,
@@ -13,7 +13,7 @@ class EmailPasswordForm extends StatelessWidget {
     super.key,
   });
 
-  final TextEditingController emailController;
+  final TextEditingController phoneController;
   final TextEditingController passwordController;
   final bool isLoading;
   final bool obscurePassword;
@@ -26,12 +26,12 @@ class EmailPasswordForm extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppTextField(
-          controller: emailController,
-          label: 'Email Address',
-          hint: 'you@example.com',
-          keyboardType: TextInputType.emailAddress,
+          controller: phoneController,
+          label: 'Phone Number',
+          hint: '98XXXXXXXX',
+          keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.next,
-          prefix: const Icon(Icons.email_outlined),
+          prefix: const Icon(Icons.phone_android_outlined),
         ),
         const SizedBox(height: 14),
         AppTextField(

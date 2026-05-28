@@ -163,6 +163,24 @@ class KitchenDetailScreen extends ConsumerWidget {
                                 item: food,
                                 onTap: () =>
                                     showFoodDetailSheet(context, ref, food),
+                                onQuickAdd: () async {
+                                  await ref
+                                      .read(cartViewModelProvider.notifier)
+                                      .addItem(food: food);
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '${food.name} added to cart',
+                                      ),
+                                      action: SnackBarAction(
+                                        label: 'View Cart',
+                                        onPressed: () =>
+                                            context.go(RoutePaths.cart),
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           )
@@ -188,7 +206,7 @@ class KitchenDetailScreen extends ConsumerWidget {
                 onPressed: () => context.push(RoutePaths.cart),
                 icon: const Icon(Icons.shopping_bag_outlined),
                 label: Text(
-                  'View Cart (${cart.items.length}) • Rs ${cart.subtotal.toStringAsFixed(0)}',
+                  'View Cart (${cart.totalItems}) • Rs ${cart.subtotal.toStringAsFixed(0)}',
                 ),
               ),
             ),

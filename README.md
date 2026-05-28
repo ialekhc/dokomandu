@@ -1,44 +1,73 @@
-# Dokomandu Customer App
+# Dokomandu Customer App (Static Demo)
 
-Cloud Kitchen / Food Delivery customer mobile app built with Flutter using MVVM, Riverpod, Dio, and GoRouter.
+Dokomandu is a **client-demo-ready Flutter food delivery app** built with:
+- Flutter + Dart
+- MVVM (feature-first)
+- Riverpod
+- GoRouter
+- Material 3 (Light/Dark theme)
+- Static local data only
 
-## Overview
-Dokomandu is a scalable mobile app codebase focused on:
-- Location-based kitchen discovery
-- Food browsing and cart management
-- COD checkout flow
-- Order tracking and history
-- Push notification-ready architecture
+This project is intentionally backend-independent right now and is structured for future API integration.
+
+## Demo Scope
+
+Implemented as static/local demo:
+- Splash and onboarding
+- Phone + password authentication (register/login/forgot password demo)
+- Session persistence (local secure storage)
+- Home feed, categories, kitchens, menu, food details
+- Variant and add-on selection
+- Cart management and persistence
+- Checkout with address selection
+- Delivery type:
+  - Order Now
+  - Schedule Order (date + slot validation)
+- Cash on Delivery only
+- Place order and success flow
+- Order tracking timeline (manual + fake auto progression)
+- Scheduled order start demo action
+- Active orders and order history separation
+- Rating and review after delivery (single submission per order)
 - Profile and address management
+- Theme mode selection (System/Light/Dark)
+- Notifications (static list)
 
-## Tech Stack
-- Flutter (latest stable)
-- Dart (`^3.11.3` in `pubspec.yaml`)
-- Architecture: MVVM (feature modular)
-- State management: Riverpod (`AsyncNotifier` / `StateNotifier`)
-- Networking: Dio + interceptors
-- Navigation: GoRouter
-- Secure storage: Flutter Secure Storage
-- Local cache: SharedPreferences + Hive
-- Notifications: Firebase Cloud Messaging
-- Maps & location: Google Maps Flutter + Geolocator
-- UI: Material 3, custom theme, Nunito Sans
+## Not Included (By Design)
 
-## Design System
-- Material 3 light and dark themes
-- Brand primary color: `#193CB8`
-- Typography: Nunito Sans via Google Fonts
-- Reusable spacing/radius/component themes under `lib/app/theme/`
+- Firebase / FCM
+- Real backend API calls
+- Real OTP verification
+- Real Google Maps API integration
+- Real payment gateway
+- Real rider GPS tracking
 
-## Architecture
-Feature-first MVVM modules:
-- `models/`
-- `services/`
-- `viewmodels/`
-- `screens/`
-- `widgets/`
+## Map Integration
 
-Top-level structure:
+The app uses **OpenStreetMap** via `flutter_map` for demo map visuals and tap-based location selection.
+
+## Theme
+
+- Material 3
+- Brand primary: `#193CB8`
+- Font: **Nunito Sans**
+- Light and dark theme support with persisted theme mode
+
+## Demo Auth
+
+Default seeded demo account:
+- Phone: `9800000000`
+- Password: `123456`
+
+Registration rules:
+- Full name required
+- Valid phone required
+- Password min length 6
+- Confirm password must match
+- Terms acceptance required
+- Duplicate phone is blocked in local state
+
+## Project Structure
 
 ```text
 lib/
@@ -57,6 +86,7 @@ lib/
     utils/
     widgets/
   features/
+    address/
     auth/
     cart/
     checkout/
@@ -67,6 +97,8 @@ lib/
     notifications/
     orders/
     profile/
+    reviews/
+    tracking/
   shared/
     models/
     providers/
@@ -74,124 +106,45 @@ lib/
   main.dart
 ```
 
-## Implemented Modules
-- Auth (email/password + OTP service methods)
-- Location picker with Google Maps + service radius check
-- Home feed (offers, categories, popular foods, nearby kitchens)
-- Kitchen list/detail + menu browsing
-- Food detail bottom sheet with variants/add-ons
-- Cart with quantity, pricing, tax, and persistence
-- Checkout with address selection and COD flow
-- Orders (active/history/detail/timeline/cancel/reorder)
-- Notifications list (read state)
-- Profile/edit profile/theme mode selection/logout/delete account
+## Configuration Flags
 
-## API Layer
-- `BaseApiService` wrappers for `GET/POST/PATCH/DELETE`
-- Generic API response model parsing
-- Central Dio client with auth token injection
-- Refresh token handling interceptor
-- Retry interceptor
-- Debug request/response logging (debug mode)
+`lib/app/config/app_config.dart`
 
-## Runtime Flags
-Configuration lives in `lib/app/config/app_config.dart`.
+- `BYPASS_AUTH` (default: `false`)
+- `USE_STATIC_CONTENT` (default: `true`)
+- `API_BASE_URL` (kept for future API integration)
 
-| Flag | Default | Description |
-|---|---|---|
-| `API_BASE_URL` | `https://api.example.com/v1` | Backend base URL |
-| `BYPASS_AUTH` | `true` | Skips auth routes and opens app directly |
-| `USE_STATIC_CONTENT` | `true` | Uses dummy/static content in services |
+Example:
 
-## Getting Started
-1. Install Flutter SDK and platform toolchains (Android Studio + Xcode).
-2. From project root, run:
+```bash
+flutter run --dart-define=BYPASS_AUTH=true --dart-define=USE_STATIC_CONTENT=true
+```
+
+## Run
 
 ```bash
 flutter pub get
-```
-
-3. Run app (default current mode: auth bypass + static data):
-
-```bash
 flutter run
 ```
 
-## Useful Run Modes
-Run against real backend data with auth enabled:
-
-```bash
-flutter run \
-  --dart-define=API_BASE_URL=https://your-api-base-url/v1 \
-  --dart-define=BYPASS_AUTH=false \
-  --dart-define=USE_STATIC_CONTENT=false
-```
-
-Run with real API but keep login bypass for UI testing:
-
-```bash
-flutter run \
-  --dart-define=API_BASE_URL=https://your-api-base-url/v1 \
-  --dart-define=BYPASS_AUTH=true \
-  --dart-define=USE_STATIC_CONTENT=false
-```
-
-## Firebase Setup (FCM)
-Current bootstrap is crash-safe even if Firebase is missing, but notifications require proper setup.
-
-1. Add `android/app/google-services.json`.
-2. Add `ios/Runner/GoogleService-Info.plist`.
-3. Configure APNs + Firebase Messaging for iOS.
-4. Re-run pods:
-
-```bash
-cd ios && pod install && cd ..
-```
-
-## Google Maps & Location Setup
-Before production use, configure platform keys and permissions.
-
-Android:
-- Add required location permissions in `android/app/src/main/AndroidManifest.xml`.
-- Add Google Maps API key meta-data in the `application` tag.
-
-iOS:
-- Add location usage descriptions in `ios/Runner/Info.plist`.
-- Provide Google Maps iOS key initialization if required by your setup.
-
-## Platform Notes
-- iOS deployment target is set to `15.0` in `ios/Podfile`.
-- Android release currently uses debug signing in `android/app/build.gradle.kts`; replace with real signing config for production.
-
-If Android build fails with NDK `source.properties` issue:
-- Delete broken folder under `~/Library/Android/sdk/ndk/<version>`.
-- Reinstall that NDK version using SDK Manager.
-
-## Build Commands
-Android APK:
+## Build APK
 
 ```bash
 flutter build apk
 ```
 
-iOS (requires macOS + Xcode setup):
+If you hit Android NDK corruption (missing `source.properties`), delete the broken NDK folder and re-download from Android SDK Manager.
 
-```bash
-flutter build ios
-```
-
-## Quality Commands
+## Quality
 
 ```bash
 flutter analyze
 flutter test
 ```
 
-## Assets
-- App logo: `assets/images/logo.png`
+Note: In restricted sandbox environments, Flutter SDK cache updates may be blocked and can prevent running these commands.
 
-## Current Development Defaults
-- `BYPASS_AUTH=true`
-- `USE_STATIC_CONTENT=true`
+## Architecture Doc
 
-This allows immediate UI testing without backend dependency.
+See: [docs/architecture.md](docs/architecture.md)
+

@@ -59,19 +59,42 @@ class CartItemTile extends StatelessWidget {
                   ),
                   if (item.selectedVariant != null)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        'Variant: ${item.selectedVariant!.name}',
-                        style: theme.textTheme.bodySmall,
+                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                      child: Wrap(
+                        spacing: AppSpacing.xs,
+                        runSpacing: AppSpacing.xs,
+                        children: [
+                          Chip(
+                            visualDensity: VisualDensity.compact,
+                            label: Text(
+                              'Variant: ${item.selectedVariant!.name}',
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   if (item.selectedAddons.isNotEmpty)
-                    Text(
-                      'Add-ons: ${item.selectedAddons.map((e) => e.name).join(', ')}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                      child: Wrap(
+                        spacing: AppSpacing.xs,
+                        runSpacing: AppSpacing.xs,
+                        children: item.selectedAddons
+                            .map(
+                              (addon) => Chip(
+                                visualDensity: VisualDensity.compact,
+                                label: Text('Add-on: ${addon.name}'),
+                              ),
+                            )
+                            .toList(),
                       ),
                     ),
+                  Text(
+                    'Unit: Rs ${item.unitPrice.toStringAsFixed(0)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                   Row(
                     children: [

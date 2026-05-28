@@ -15,6 +15,8 @@ class CartState {
   final String? couponCode;
   final double discountAmount;
 
+  int get totalItems => items.fold<int>(0, (sum, item) => sum + item.quantity);
+
   double get subtotal =>
       items.fold<double>(0, (sum, item) => sum + item.lineTotal);
 
@@ -33,10 +35,11 @@ class CartState {
 
 class CartViewModel extends StateNotifier<CartState> {
   CartViewModel(this._service) : super(const CartState()) {
-    _hydrate();
+    _hydrationFuture = _hydrate();
   }
 
   final CartService _service;
+  late final Future<void> _hydrationFuture;
 
   double get deliveryFee => _service.calculateDeliveryFee(state.subtotal);
   double get tax => _service.calculateTax(
@@ -45,8 +48,39 @@ class CartViewModel extends StateNotifier<CartState> {
   double get total => state.subtotal + deliveryFee + tax - state.discountAmount;
 
   Future<void> _hydrate() async {
-    final items = await _service.loadCachedCartItems();
-    state = state.copyWith(items: items);
+    try {
+      final cachedItems = await _service.loadCachedCartItems();
+      if (cachedItems.isEmpty) return;
+
+      final mergedItems = _mergeItems(cachedItems, state.items);
+      state = state.copyWith(items: mergedItems);
+    } catch (_) {
+      // Keep the in-memory cart if local cache hydration fails.
+    }
+  }
+
+  Future<void> _ensureHydrated() => _hydrationFuture;
+
+  List<CartItemModel> _mergeItems(
+    List<CartItemModel> first,
+    List<CartItemModel> second,
+  ) {
+    final mergedById = <String, CartItemModel>{
+      for (final item in first) item.id: item,
+    };
+
+    for (final item in second) {
+      final existing = mergedById[item.id];
+      if (existing == null) {
+        mergedById[item.id] = item;
+      } else {
+        mergedById[item.id] = existing.copyWith(
+          quantity: existing.quantity + item.quantity,
+        );
+      }
+    }
+
+    return mergedById.values.toList();
   }
 
   String _buildItemId(
@@ -64,6 +98,8 @@ class CartViewModel extends StateNotifier<CartState> {
     List<FoodAddon> addons = const [],
     int quantity = 1,
   }) async {
+    await _ensureHydrated();
+
     final itemId = _buildItemId(food, variant, addons);
     final current = [...state.items];
     final index = current.indexWhere((e) => e.id == itemId);
@@ -90,6 +126,8 @@ class CartViewModel extends StateNotifier<CartState> {
   }
 
   Future<void> updateQuantity(String itemId, int quantity) async {
+    await _ensureHydrated();
+
     if (quantity <= 0) {
       await removeItem(itemId);
       return;
@@ -107,12 +145,16 @@ class CartViewModel extends StateNotifier<CartState> {
   }
 
   Future<void> removeItem(String itemId) async {
+    await _ensureHydrated();
+
     final updated = state.items.where((item) => item.id != itemId).toList();
     state = state.copyWith(items: updated);
     await _service.persistCartItems(updated);
   }
 
   Future<void> clearCart() async {
+    await _ensureHydrated();
+
     state = const CartState();
     await _service.clearCart();
   }

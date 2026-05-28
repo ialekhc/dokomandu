@@ -26,6 +26,7 @@ class ApiEndpoints {
   static const String activeOrders = '/orders/active';
   static const String orderHistory = '/orders/history';
   static const String orderDetail = '/orders/{id}';
+  static const String orderTracking = '/orders/{id}/tracking';
   static const String cancelOrder = '/orders/{id}/cancel';
   static const String reorder = '/orders/{id}/reorder';
 

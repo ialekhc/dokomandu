@@ -8,6 +8,8 @@ class CheckoutSummaryModel {
     required this.tax,
     required this.total,
     required this.paymentMethod,
+    required this.deliveryType,
+    this.scheduledFor,
   });
 
   final AddressModel address;
@@ -16,6 +18,10 @@ class CheckoutSummaryModel {
   final double tax;
   final double total;
   final String paymentMethod;
+  final String deliveryType;
+  final DateTime? scheduledFor;
+
+  bool get isScheduled => deliveryType == 'SCHEDULE';
 
   Map<String, dynamic> toJson() {
     return {
@@ -26,6 +32,8 @@ class CheckoutSummaryModel {
       'tax': tax,
       'total': total,
       'paymentMethod': paymentMethod,
+      'deliveryType': deliveryType,
+      'scheduledFor': scheduledFor?.toIso8601String(),
     };
   }
 }

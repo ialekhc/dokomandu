@@ -4,7 +4,7 @@ import 'package:dokomandu/shared/models/address_model.dart';
 import 'package:dokomandu/shared/providers/app_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 
 class LocationState {
   const LocationState({
@@ -99,6 +99,42 @@ class LocationViewModel extends AsyncNotifier<LocationState> {
     updateSelectedPoint(LatLng(address.latitude, address.longitude));
   }
 
+  Future<void> addAddress({
+    required String label,
+    required String fullAddress,
+    required double latitude,
+    required double longitude,
+    String? landmark,
+  }) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+
+    final created = await _service.addAddress(
+      AddressModel(
+        id: '',
+        label: label,
+        fullAddress: fullAddress,
+        latitude: latitude,
+        longitude: longitude,
+        landmark: landmark,
+      ),
+    );
+
+    final updated = [...current.savedAddresses, created];
+    state = AsyncData(current.copyWith(savedAddresses: updated));
+  }
+
+  Future<void> removeAddress(String addressId) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+
+    final updated = current.savedAddresses
+        .where((address) => address.id != addressId)
+        .toList();
+    await _service.saveAddressesForDemo(updated);
+    state = AsyncData(current.copyWith(savedAddresses: updated));
+  }
+
   Future<void> refreshLocation() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(_initialize);
@@ -106,7 +142,10 @@ class LocationViewModel extends AsyncNotifier<LocationState> {
 }
 
 final locationServiceProvider = Provider<LocationService>(
-  (ref) => LocationService(ref.watch(baseApiServiceProvider)),
+  (ref) => LocationService(
+    ref.watch(baseApiServiceProvider),
+    ref.watch(localCacheServiceProvider),
+  ),
 );
 
 final locationViewModelProvider =

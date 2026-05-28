@@ -8,7 +8,7 @@ class AppConfig {
   );
   static const bool bypassAuth = bool.fromEnvironment(
     'BYPASS_AUTH',
-    defaultValue: true,
+    defaultValue: false,
   );
   static const bool useStaticContent = bool.fromEnvironment(
     'USE_STATIC_CONTENT',
@@ -23,4 +23,9 @@ class AppConfig {
 
   static const String hiveBoxAppCache = 'app_cache_box';
   static const String hiveBoxCart = 'cart_box';
+
+  static const String cacheOnboardingDone = 'onboarding_done';
+  static const String cacheDemoUsers = 'demo_users';
+  static const String cacheDemoAddresses = 'demo_addresses';
+  static const String cacheOrderReviews = 'order_reviews';
 }

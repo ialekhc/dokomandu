@@ -5,10 +5,16 @@ import 'package:dokomandu/shared/widgets/network_image_view.dart';
 import 'package:flutter/material.dart';
 
 class FoodCard extends StatelessWidget {
-  const FoodCard({required this.item, required this.onTap, super.key});
+  const FoodCard({
+    required this.item,
+    required this.onTap,
+    this.onQuickAdd,
+    super.key,
+  });
 
   final FoodItemModel item;
   final VoidCallback onTap;
+  final VoidCallback? onQuickAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +131,7 @@ class FoodCard extends StatelessWidget {
                         ),
                         const Spacer(),
                         FilledButton.tonalIcon(
-                          onPressed: onTap,
+                          onPressed: onQuickAdd ?? onTap,
                           icon: const Icon(Icons.add_rounded),
                           style: FilledButton.styleFrom(
                             visualDensity: VisualDensity.compact,

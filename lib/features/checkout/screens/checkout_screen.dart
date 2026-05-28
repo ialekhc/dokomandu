@@ -12,6 +12,8 @@ import 'package:go_router/go_router.dart';
 class CheckoutScreen extends ConsumerWidget {
   const CheckoutScreen({super.key});
 
+  static const _slots = ['10:30', '13:00', '17:30', '20:00'];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final checkoutState = ref.watch(checkoutViewModelProvider);
@@ -36,9 +38,21 @@ class CheckoutScreen extends ConsumerWidget {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.md),
-                child: Text(
-                  'No saved addresses found. Add from the location picker.',
-                  style: theme.textTheme.bodySmall,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'No saved addresses found. Add one to continue checkout.',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    OutlinedButton.icon(
+                      onPressed: () =>
+                          context.push(RoutePaths.addressManagement),
+                      icon: const Icon(Icons.add_location_alt_outlined),
+                      label: const Text('Manage Addresses'),
+                    ),
+                  ],
                 ),
               ),
             )
@@ -55,6 +69,76 @@ class CheckoutScreen extends ConsumerWidget {
                 ),
               ),
             ),
+          const SizedBox(height: AppSpacing.md),
+          Text('Delivery Type', style: theme.textTheme.titleMedium),
+          const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              Expanded(
+                child: _DeliveryTypeTile(
+                  title: 'Order Now',
+                  subtitle: 'Immediate kitchen processing',
+                  icon: Icons.flash_on_outlined,
+                  selected: checkoutState.deliveryType == 'NOW',
+                  onTap: () => ref
+                      .read(checkoutViewModelProvider.notifier)
+                      .selectDeliveryType('NOW'),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _DeliveryTypeTile(
+                  title: 'Schedule Order',
+                  subtitle: 'Pick delivery date and slot',
+                  icon: Icons.schedule_outlined,
+                  selected: checkoutState.deliveryType == 'SCHEDULE',
+                  onTap: () => ref
+                      .read(checkoutViewModelProvider.notifier)
+                      .selectDeliveryType('SCHEDULE'),
+                ),
+              ),
+            ],
+          ),
+          if (checkoutState.deliveryType == 'SCHEDULE') ...[
+            const SizedBox(height: AppSpacing.sm),
+            OutlinedButton.icon(
+              onPressed: () async {
+                final now = DateTime.now();
+                final picked = await showDatePicker(
+                  context: context,
+                  firstDate: now,
+                  lastDate: now.add(const Duration(days: 14)),
+                  initialDate: checkoutState.scheduledDate ?? now,
+                );
+                if (picked == null) return;
+                ref
+                    .read(checkoutViewModelProvider.notifier)
+                    .selectScheduledDate(picked);
+              },
+              icon: const Icon(Icons.calendar_month_outlined),
+              label: Text(
+                checkoutState.scheduledDate == null
+                    ? 'Select Delivery Date'
+                    : 'Delivery Date: ${checkoutState.scheduledDate!.day}/${checkoutState.scheduledDate!.month}/${checkoutState.scheduledDate!.year}',
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: _slots
+                  .map(
+                    (slot) => ChoiceChip(
+                      label: Text(slot),
+                      selected: checkoutState.scheduledSlot == slot,
+                      onSelected: (_) => ref
+                          .read(checkoutViewModelProvider.notifier)
+                          .selectScheduledSlot(slot),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
           const SizedBox(height: AppSpacing.md),
           Text('Payment Method', style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.xs),
@@ -76,13 +160,25 @@ class CheckoutScreen extends ConsumerWidget {
                       .read(checkoutViewModelProvider.notifier)
                       .selectPaymentMethod('COD'),
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                _PaymentOptionTile(
-                  title: 'Online Payment',
-                  subtitle: 'Coming soon',
-                  icon: Icons.credit_card_outlined,
-                  selected: checkoutState.paymentMethod == 'ONLINE',
-                  onTap: () {},
+                const SizedBox(height: AppSpacing.sm),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer.withValues(
+                      alpha: 0.3,
+                    ),
+                    borderRadius: AppRadius.brMd,
+                  ),
+                  child: Text(
+                    'Only Cash on Delivery is available right now.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -94,6 +190,15 @@ class CheckoutScreen extends ConsumerWidget {
               child: Column(
                 children: [
                   _row('Items (${cartState.items.length})', cartState.subtotal),
+                  if (checkoutState.deliveryType == 'SCHEDULE' &&
+                      checkoutState.scheduledDate != null &&
+                      checkoutState.scheduledSlot != null)
+                    _row(
+                      'Scheduled',
+                      0,
+                      suffix:
+                          '${checkoutState.scheduledDate!.day}/${checkoutState.scheduledDate!.month} ${checkoutState.scheduledSlot}',
+                    ),
                   _row('Delivery Fee', cartNotifier.deliveryFee),
                   _row('Tax', cartNotifier.tax),
                   const Divider(height: AppSpacing.lg),
@@ -183,12 +288,12 @@ class CheckoutScreen extends ConsumerWidget {
                           final orderId =
                               ref.read(checkoutViewModelProvider).orderId ??
                               'N/A';
-                          context.go(
-                            RoutePaths.orderSuccess.replaceFirst(
-                              ':id',
-                              orderId,
-                            ),
-                          );
+                          final isScheduled =
+                              ref.read(checkoutViewModelProvider).deliveryType ==
+                              'SCHEDULE';
+                          final path = RoutePaths.orderSuccess
+                              .replaceFirst(':id', orderId);
+                          context.go('$path?scheduled=${isScheduled ? '1' : '0'}');
                         },
                   icon: checkoutState.isPlacingOrder
                       ? const SizedBox(
@@ -211,20 +316,81 @@ class CheckoutScreen extends ConsumerWidget {
     );
   }
 
-  Widget _row(String label, double value, {bool isTotal = false}) {
+  Widget _row(
+    String label,
+    double value, {
+    bool isTotal = false,
+    String? suffix,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Text(label),
           const Spacer(),
-          Text(
-            'Rs ${value.toStringAsFixed(2)}',
-            style: TextStyle(
-              fontWeight: isTotal ? FontWeight.w700 : FontWeight.w500,
+          if (suffix != null)
+            Text(
+              suffix,
+              style: TextStyle(
+                fontWeight: isTotal ? FontWeight.w700 : FontWeight.w500,
+              ),
+            )
+          else
+            Text(
+              'Rs ${value.toStringAsFixed(2)}',
+              style: TextStyle(
+                fontWeight: isTotal ? FontWeight.w700 : FontWeight.w500,
+              ),
             ),
-          ),
         ],
+      ),
+    );
+  }
+}
+
+class _DeliveryTypeTile extends StatelessWidget {
+  const _DeliveryTypeTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: selected
+          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.32)
+          : theme.colorScheme.surface,
+      borderRadius: AppRadius.brMd,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.brMd,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: theme.colorScheme.primary),
+              const SizedBox(height: 6),
+              Text(title, style: theme.textTheme.titleSmall),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

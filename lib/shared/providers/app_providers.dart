@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import 'package:dokomandu/core/api/base_api_service.dart';
 import 'package:dokomandu/core/network/dio_client.dart';
 import 'package:dokomandu/core/services/connectivity_service.dart';
-import 'package:dokomandu/core/services/firebase_messaging_service.dart';
 import 'package:dokomandu/core/storage/hive_storage_service.dart';
 import 'package:dokomandu/core/storage/local_cache_service.dart';
 import 'package:dokomandu/core/storage/secure_storage_service.dart';
@@ -40,8 +39,4 @@ final dioProvider = Provider<Dio>((ref) => ref.watch(dioClientProvider).client);
 
 final baseApiServiceProvider = Provider<BaseApiService>(
   (ref) => BaseApiService(ref.watch(dioProvider)),
-);
-
-final firebaseMessagingServiceProvider = Provider<FirebaseMessagingService>(
-  (ref) => FirebaseMessagingService(ref.watch(secureStorageServiceProvider)),
 );

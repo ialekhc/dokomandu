@@ -95,7 +95,7 @@ class ProfileScreen extends ConsumerWidget {
               ProfileMenuTile(
                 title: 'Manage Addresses',
                 icon: Icons.location_on_outlined,
-                onTap: () => context.push(RoutePaths.locationPicker),
+                onTap: () => context.push(RoutePaths.addressManagement),
               ),
               ProfileMenuTile(
                 title: 'Appearance',

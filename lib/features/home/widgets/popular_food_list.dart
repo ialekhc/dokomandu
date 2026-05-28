@@ -4,10 +4,16 @@ import 'package:dokomandu/shared/widgets/network_image_view.dart';
 import 'package:flutter/material.dart';
 
 class PopularFoodList extends StatelessWidget {
-  const PopularFoodList({required this.items, required this.onTap, super.key});
+  const PopularFoodList({
+    required this.items,
+    required this.onTap,
+    this.onQuickAdd,
+    super.key,
+  });
 
   final List<FoodItemModel> items;
   final ValueChanged<FoodItemModel> onTap;
+  final ValueChanged<FoodItemModel>? onQuickAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +111,8 @@ class PopularFoodList extends StatelessWidget {
                                 ),
                                 const Spacer(),
                                 IconButton.filledTonal(
-                                  onPressed: () => onTap(item),
+                                  onPressed: () =>
+                                      (onQuickAdd ?? onTap).call(item),
                                   icon: const Icon(Icons.add_rounded),
                                   visualDensity: VisualDensity.compact,
                                 ),

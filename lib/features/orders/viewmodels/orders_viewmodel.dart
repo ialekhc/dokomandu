@@ -1,4 +1,6 @@
+import 'package:dokomandu/features/orders/services/order_local_store.dart';
 import 'package:dokomandu/features/orders/services/orders_service.dart';
+import 'package:dokomandu/features/tracking/viewmodels/tracking_viewmodel.dart';
 import 'package:dokomandu/shared/models/order_model.dart';
 import 'package:dokomandu/shared/providers/app_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,17 +28,43 @@ class OrdersViewModel extends AsyncNotifier<OrdersState> {
   }
 
   Future<void> cancelOrder(String orderId) async {
-    await _service.cancelOrder(orderId);
-    await refresh();
+    try {
+      await _service.cancelOrder(orderId);
+      await refresh();
+    } catch (_) {
+      await refresh();
+    }
   }
 
   Future<void> reorder(String orderId) async {
-    await _service.reorder(orderId);
+    try {
+      await _service.reorder(orderId);
+      await refresh();
+    } catch (_) {
+      await refresh();
+    }
+  }
+
+  Future<void> startScheduledOrderDemo(String orderId) async {
+    try {
+      await _service.startScheduledOrderDemo(orderId);
+      ref.invalidate(trackingViewModelProvider(orderId));
+      await refresh();
+    } catch (_) {
+      await refresh();
+    }
   }
 }
 
+final orderLocalStoreProvider = Provider<OrderLocalStore>(
+  (ref) => OrderLocalStore(ref.watch(localCacheServiceProvider)),
+);
+
 final ordersServiceProvider = Provider<OrdersService>(
-  (ref) => OrdersService(ref.watch(baseApiServiceProvider)),
+  (ref) => OrdersService(
+    ref.watch(baseApiServiceProvider),
+    ref.watch(orderLocalStoreProvider),
+  ),
 );
 
 final ordersViewModelProvider =

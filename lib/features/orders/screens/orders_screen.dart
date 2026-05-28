@@ -3,6 +3,7 @@ import 'package:dokomandu/app/theme/app_radius.dart';
 import 'package:dokomandu/app/theme/app_spacing.dart';
 import 'package:dokomandu/core/widgets/app_empty_state.dart';
 import 'package:dokomandu/core/widgets/app_error_state.dart';
+import 'package:dokomandu/features/orders/services/orders_service.dart';
 import 'package:dokomandu/features/orders/viewmodels/orders_viewmodel.dart';
 import 'package:dokomandu/features/orders/widgets/orders_shimmer.dart';
 import 'package:dokomandu/shared/models/order_model.dart';
@@ -47,10 +48,12 @@ class OrdersScreen extends ConsumerWidget {
                   onOrderTap: (id) => context.push(
                     RoutePaths.orderDetail.replaceFirst(':id', id),
                   ),
-                  onSecondaryAction: (id) => ref
+                  onCancelOrder: (id) => ref
                       .read(ordersViewModelProvider.notifier)
                       .cancelOrder(id),
-                  showCancel: true,
+                  onStartScheduledDemo: (id) => ref
+                      .read(ordersViewModelProvider.notifier)
+                      .startScheduledOrderDemo(id),
                 ),
                 _OrderList(
                   emptyTitle: 'No order history yet',
@@ -62,7 +65,6 @@ class OrdersScreen extends ConsumerWidget {
                   ),
                   onSecondaryAction: (id) =>
                       ref.read(ordersViewModelProvider.notifier).reorder(id),
-                  showCancel: false,
                 ),
               ],
             );
@@ -79,16 +81,18 @@ class _OrderList extends StatelessWidget {
     required this.emptySubtitle,
     required this.orderItems,
     required this.onOrderTap,
-    required this.onSecondaryAction,
-    required this.showCancel,
+    this.onSecondaryAction,
+    this.onCancelOrder,
+    this.onStartScheduledDemo,
   });
 
   final String emptyTitle;
   final String emptySubtitle;
   final List<OrderModel> orderItems;
   final ValueChanged<String> onOrderTap;
-  final ValueChanged<String> onSecondaryAction;
-  final bool showCancel;
+  final ValueChanged<String>? onSecondaryAction;
+  final ValueChanged<String>? onCancelOrder;
+  final ValueChanged<String>? onStartScheduledDemo;
 
   @override
   Widget build(BuildContext context) {
@@ -148,6 +152,26 @@ class _OrderList extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (order.isScheduled) ...[
+                        const SizedBox(width: AppSpacing.xs),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.secondaryContainer,
+                            borderRadius: AppRadius.brXl,
+                          ),
+                          child: Text(
+                            'Scheduled',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSecondaryContainer,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: AppSpacing.xs),
@@ -163,6 +187,21 @@ class _OrderList extends StatelessWidget {
                         DateFormat('MMM d, hh:mm a').format(order.createdAt),
                         style: theme.textTheme.bodySmall,
                       ),
+                      if (order.isScheduled && order.scheduledFor != null) ...[
+                        const SizedBox(width: AppSpacing.md),
+                        Icon(
+                          Icons.event_available_outlined,
+                          size: 16,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          DateFormat(
+                            'MMM d • hh:mm a',
+                          ).format(order.scheduledFor!),
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ],
                       const SizedBox(width: AppSpacing.md),
                       Icon(
                         Icons.fastfood_outlined,
@@ -187,18 +226,29 @@ class _OrderList extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      if (showCancel)
+                      if (order.isScheduled &&
+                          !order.trackingStarted &&
+                          order.status != OrderStatus.cancelled &&
+                          order.status != OrderStatus.delivered)
                         OutlinedButton.icon(
-                          onPressed: () => onSecondaryAction(order.id),
+                          onPressed: onStartScheduledDemo == null
+                              ? null
+                              : () => onStartScheduledDemo!(order.id),
+                          icon: const Icon(Icons.play_circle_outline_rounded),
+                          label: const Text('Start Demo'),
+                        )
+                      else if (onCancelOrder != null && canCancel(order.status))
+                        OutlinedButton.icon(
+                          onPressed: () => onCancelOrder!(order.id),
                           icon: const Icon(Icons.cancel_outlined),
                           label: const Text('Cancel'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: theme.colorScheme.error,
                           ),
                         )
-                      else
+                      else if (onSecondaryAction != null)
                         OutlinedButton.icon(
-                          onPressed: () => onSecondaryAction(order.id),
+                          onPressed: () => onSecondaryAction!(order.id),
                           icon: const Icon(Icons.refresh_rounded),
                           label: const Text('Reorder'),
                         ),
@@ -234,6 +284,7 @@ class _OrderList extends StatelessWidget {
         );
       case OrderStatus.onTheWay:
       case OrderStatus.pickedUp:
+      case OrderStatus.nearby:
         return _StatusStyle(
           background: scheme.secondaryContainer,
           foreground: scheme.onSecondaryContainer,

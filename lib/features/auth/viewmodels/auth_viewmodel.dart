@@ -25,15 +25,15 @@ class AuthViewModel extends StateNotifier<AuthViewState> {
   final Ref _ref;
   final AuthService _authService;
 
-  Future<bool> loginWithEmailPassword({
-    required String email,
+  Future<bool> loginWithPhonePassword({
+    required String phone,
     required String password,
   }) async {
     state = state.copyWith(isLoading: true, error: null, info: null);
 
     try {
-      final auth = await _authService.loginWithEmailPassword(
-        email: email,
+      final auth = await _authService.loginWithPhonePassword(
+        phone: phone,
         password: password,
       );
 
@@ -56,7 +56,65 @@ class AuthViewModel extends StateNotifier<AuthViewState> {
     } catch (_) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Email/password login failed.',
+        error: 'Phone/password login failed.',
+      );
+      return false;
+    }
+  }
+
+  Future<bool> registerDemoUser({
+    required String fullName,
+    required String phone,
+    required String password,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null, info: null);
+
+    try {
+      final auth = await _authService.registerDemoUser(
+        fullName: fullName,
+        phone: phone,
+        password: password,
+      );
+
+      await _ref
+          .read(sessionProvider.notifier)
+          .setAuthenticated(
+            accessToken: auth.accessToken,
+            refreshToken: auth.refreshToken,
+            user: auth.user,
+          );
+
+      state = state.copyWith(
+        isLoading: false,
+        info: 'Demo account created successfully.',
+      );
+      return true;
+    } on AppException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+      return false;
+    } catch (_) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Unable to create demo account.',
+      );
+      return false;
+    }
+  }
+
+  Future<bool> forgotPasswordDemo({required String phone}) async {
+    state = state.copyWith(isLoading: true, error: null, info: null);
+
+    try {
+      final message = await _authService.forgotPasswordDemo(phone: phone);
+      state = state.copyWith(isLoading: false, info: message);
+      return true;
+    } on AppException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+      return false;
+    } catch (_) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Unable to process forgot password request.',
       );
       return false;
     }

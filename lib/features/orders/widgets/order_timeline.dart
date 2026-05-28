@@ -13,8 +13,8 @@ class OrderTimeline extends StatelessWidget {
     OrderStatus.accepted,
     OrderStatus.preparing,
     OrderStatus.ready,
-    OrderStatus.pickedUp,
     OrderStatus.onTheWay,
+    OrderStatus.nearby,
     OrderStatus.delivered,
   ];
 

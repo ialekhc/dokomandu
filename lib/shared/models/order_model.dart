@@ -5,6 +5,7 @@ enum OrderStatus {
   ready,
   pickedUp,
   onTheWay,
+  nearby,
   delivered,
   cancelled,
 }
@@ -13,17 +14,19 @@ extension OrderStatusX on OrderStatus {
   String get label {
     switch (this) {
       case OrderStatus.placed:
-        return 'Placed';
+        return 'Order Placed';
       case OrderStatus.accepted:
-        return 'Accepted';
+        return 'Order Accepted';
       case OrderStatus.preparing:
-        return 'Preparing';
+        return 'Preparing Food';
       case OrderStatus.ready:
-        return 'Ready';
+        return 'Ready for Pickup';
       case OrderStatus.pickedUp:
         return 'Picked Up';
       case OrderStatus.onTheWay:
-        return 'On The Way';
+        return 'Out for Delivery';
+      case OrderStatus.nearby:
+        return 'Nearby';
       case OrderStatus.delivered:
         return 'Delivered';
       case OrderStatus.cancelled:
@@ -34,17 +37,26 @@ extension OrderStatusX on OrderStatus {
   static OrderStatus fromValue(String? value) {
     switch (value?.toLowerCase()) {
       case 'accepted':
+      case 'order_accepted':
         return OrderStatus.accepted;
       case 'preparing':
+      case 'preparing_food':
         return OrderStatus.preparing;
       case 'ready':
+      case 'ready_for_pickup':
         return OrderStatus.ready;
       case 'picked_up':
       case 'pickedup':
         return OrderStatus.pickedUp;
+      case 'out_for_delivery':
       case 'on_the_way':
       case 'ontheway':
         return OrderStatus.onTheWay;
+      case 'order_placed':
+      case 'placed':
+        return OrderStatus.placed;
+      case 'nearby':
+        return OrderStatus.nearby;
       case 'delivered':
         return OrderStatus.delivered;
       case 'cancelled':
@@ -90,6 +102,16 @@ class OrderModel {
     required this.status,
     required this.createdAt,
     required this.deliveryAddress,
+    this.paymentMethod = 'COD',
+    this.kitchenName,
+    this.kitchenLatitude,
+    this.kitchenLongitude,
+    this.deliveryLatitude,
+    this.deliveryLongitude,
+    this.isScheduled = false,
+    this.scheduledFor,
+    this.trackingStarted = true,
+    this.codPaid = false,
   });
 
   final String id;
@@ -101,6 +123,60 @@ class OrderModel {
   final OrderStatus status;
   final DateTime createdAt;
   final String deliveryAddress;
+  final String paymentMethod;
+  final String? kitchenName;
+  final double? kitchenLatitude;
+  final double? kitchenLongitude;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
+  final bool isScheduled;
+  final DateTime? scheduledFor;
+  final bool trackingStarted;
+  final bool codPaid;
+
+  OrderModel copyWith({
+    String? id,
+    List<OrderLineItem>? items,
+    double? subtotal,
+    double? deliveryFee,
+    double? tax,
+    double? total,
+    OrderStatus? status,
+    DateTime? createdAt,
+    String? deliveryAddress,
+    String? paymentMethod,
+    String? kitchenName,
+    double? kitchenLatitude,
+    double? kitchenLongitude,
+    double? deliveryLatitude,
+    double? deliveryLongitude,
+    bool? isScheduled,
+    DateTime? scheduledFor,
+    bool? trackingStarted,
+    bool? codPaid,
+  }) {
+    return OrderModel(
+      id: id ?? this.id,
+      items: items ?? this.items,
+      subtotal: subtotal ?? this.subtotal,
+      deliveryFee: deliveryFee ?? this.deliveryFee,
+      tax: tax ?? this.tax,
+      total: total ?? this.total,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      deliveryAddress: deliveryAddress ?? this.deliveryAddress,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      kitchenName: kitchenName ?? this.kitchenName,
+      kitchenLatitude: kitchenLatitude ?? this.kitchenLatitude,
+      kitchenLongitude: kitchenLongitude ?? this.kitchenLongitude,
+      deliveryLatitude: deliveryLatitude ?? this.deliveryLatitude,
+      deliveryLongitude: deliveryLongitude ?? this.deliveryLongitude,
+      isScheduled: isScheduled ?? this.isScheduled,
+      scheduledFor: scheduledFor ?? this.scheduledFor,
+      trackingStarted: trackingStarted ?? this.trackingStarted,
+      codPaid: codPaid ?? this.codPaid,
+    );
+  }
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     return OrderModel(
@@ -117,6 +193,18 @@ class OrderModel {
           DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
           DateTime.now(),
       deliveryAddress: json['deliveryAddress']?.toString() ?? '',
+      paymentMethod: json['paymentMethod']?.toString() ?? 'COD',
+      kitchenName: json['kitchenName']?.toString(),
+      kitchenLatitude: (json['kitchenLatitude'] as num?)?.toDouble(),
+      kitchenLongitude: (json['kitchenLongitude'] as num?)?.toDouble(),
+      deliveryLatitude: (json['deliveryLatitude'] as num?)?.toDouble(),
+      deliveryLongitude: (json['deliveryLongitude'] as num?)?.toDouble(),
+      isScheduled: json['isScheduled'] as bool? ?? false,
+      scheduledFor: json['scheduledFor'] != null
+          ? DateTime.tryParse(json['scheduledFor']?.toString() ?? '')
+          : null,
+      trackingStarted: json['trackingStarted'] as bool? ?? true,
+      codPaid: json['codPaid'] as bool? ?? false,
     );
   }
 
@@ -131,6 +219,16 @@ class OrderModel {
       'status': status.name,
       'createdAt': createdAt.toIso8601String(),
       'deliveryAddress': deliveryAddress,
+      'paymentMethod': paymentMethod,
+      'kitchenName': kitchenName,
+      'kitchenLatitude': kitchenLatitude,
+      'kitchenLongitude': kitchenLongitude,
+      'deliveryLatitude': deliveryLatitude,
+      'deliveryLongitude': deliveryLongitude,
+      'isScheduled': isScheduled,
+      'scheduledFor': scheduledFor?.toIso8601String(),
+      'trackingStarted': trackingStarted,
+      'codPaid': codPaid,
     };
   }
 }

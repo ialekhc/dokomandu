@@ -1,3 +1,4 @@
+import 'package:dokomandu/app/routes/route_paths.dart';
 import 'package:dokomandu/app/theme/app_radius.dart';
 import 'package:dokomandu/app/theme/app_spacing.dart';
 import 'package:dokomandu/features/cart/viewmodels/cart_viewmodel.dart';
@@ -5,6 +6,7 @@ import 'package:dokomandu/shared/models/food_item_model.dart';
 import 'package:dokomandu/shared/widgets/network_image_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 Future<void> showFoodDetailSheet(
   BuildContext context,
@@ -216,6 +218,10 @@ class _FoodDetailSheetState extends ConsumerState<_FoodDetailSheet> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('${widget.item.name} added to cart'),
+                            action: SnackBarAction(
+                              label: 'View Cart',
+                              onPressed: () => context.go(RoutePaths.cart),
+                            ),
                           ),
                         );
                       },

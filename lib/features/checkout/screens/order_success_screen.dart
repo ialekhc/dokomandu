@@ -6,9 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class OrderSuccessScreen extends StatelessWidget {
-  const OrderSuccessScreen({required this.orderId, super.key});
+  const OrderSuccessScreen({
+    required this.orderId,
+    this.isScheduled = false,
+    super.key,
+  });
 
   final String orderId;
+  final bool isScheduled;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +54,9 @@ class OrderSuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Your order ID is #$orderId. We have started preparing it and will keep you updated in real time.',
+                isScheduled
+                    ? 'Your scheduled order ID is #$orderId. It is saved in active orders and will begin when your demo tracking starts.'
+                    : 'Your order ID is #$orderId. We have started preparing it and will keep you updated in real time.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
@@ -74,7 +81,9 @@ class OrderSuccessScreen extends StatelessWidget {
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
-                        'Estimated delivery: 25-35 minutes',
+                        isScheduled
+                            ? 'Scheduled order is waiting for your selected slot'
+                            : 'Estimated delivery: 25-35 minutes',
                         style: theme.textTheme.titleSmall,
                       ),
                     ),
@@ -85,7 +94,7 @@ class OrderSuccessScreen extends StatelessWidget {
               AppPrimaryButton(
                 label: 'Track Order',
                 onPressed: () => context.go(
-                  RoutePaths.orderDetail.replaceFirst(':id', orderId),
+                  RoutePaths.orderTracking.replaceFirst(':id', orderId),
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),

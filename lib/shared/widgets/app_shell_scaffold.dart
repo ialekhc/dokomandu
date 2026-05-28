@@ -1,10 +1,12 @@
 import 'package:dokomandu/app/routes/route_paths.dart';
 import 'package:dokomandu/app/theme/app_radius.dart';
 import 'package:dokomandu/app/theme/app_spacing.dart';
+import 'package:dokomandu/features/cart/viewmodels/cart_viewmodel.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class AppShellScaffold extends StatelessWidget {
+class AppShellScaffold extends ConsumerWidget {
   const AppShellScaffold({required this.child, super.key});
 
   final Widget child;
@@ -24,10 +26,11 @@ class AppShellScaffold extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).matchedLocation;
     final currentIndex = _indexForLocation(location);
     final theme = Theme.of(context);
+    final cart = ref.watch(cartViewModelProvider);
 
     return Scaffold(
       extendBody: true,
@@ -53,22 +56,30 @@ class AppShellScaffold extends StatelessWidget {
             ],
           ),
           child: NavigationBar(
-            height: 68,
+            height: 74,
             selectedIndex: currentIndex,
             backgroundColor: Colors.transparent,
             indicatorColor: theme.colorScheme.primaryContainer.withValues(
               alpha: 0.7,
             ),
             onDestinationSelected: (index) => context.go(_tabs[index]),
-            destinations: const [
+            destinations: [
               NavigationDestination(
                 icon: Icon(Icons.home_outlined),
                 selectedIcon: Icon(Icons.home),
                 label: 'Home',
               ),
               NavigationDestination(
-                icon: Icon(Icons.shopping_cart_outlined),
-                selectedIcon: Icon(Icons.shopping_cart),
+                icon: Badge.count(
+                  isLabelVisible: cart.totalItems > 0,
+                  count: cart.totalItems,
+                  child: const Icon(Icons.shopping_cart_outlined),
+                ),
+                selectedIcon: Badge.count(
+                  isLabelVisible: cart.totalItems > 0,
+                  count: cart.totalItems,
+                  child: const Icon(Icons.shopping_cart),
+                ),
                 label: 'Cart',
               ),
               NavigationDestination(

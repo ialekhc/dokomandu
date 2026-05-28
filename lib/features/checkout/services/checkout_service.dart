@@ -25,6 +25,6 @@ class CheckoutService {
   Future<String> _placeOrderStatic() async {
     await Future<void>.delayed(const Duration(milliseconds: 850));
     final stamp = DateTime.now().millisecondsSinceEpoch.toString();
-    return 'ORD-${stamp.substring(stamp.length - 4)}';
+    return 'ORD-$stamp';
   }
 }

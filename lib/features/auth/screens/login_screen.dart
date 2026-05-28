@@ -1,9 +1,12 @@
+import 'package:dokomandu/app/routes/route_paths.dart';
+import 'package:dokomandu/core/utils/auth_validators.dart';
 import 'package:dokomandu/core/widgets/app_error_state.dart';
 import 'package:dokomandu/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:dokomandu/features/auth/widgets/email_password_form.dart';
 import 'package:dokomandu/shared/widgets/brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -13,20 +16,15 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  bool _isEmailValid(String value) {
-    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-    return emailRegex.hasMatch(value);
   }
 
   @override
@@ -52,12 +50,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Sign in with your email and password to continue ordering from nearby kitchens.',
+                'Sign in with your phone number and password to continue.',
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               const SizedBox(height: 24),
               EmailPasswordForm(
-                emailController: _emailController,
+                phoneController: _phoneController,
                 passwordController: _passwordController,
                 isLoading: state.isLoading,
                 obscurePassword: _obscurePassword,
@@ -67,19 +65,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   });
                 },
                 onLogin: () async {
-                  final email = _emailController.text.trim();
+                  final phone = _phoneController.text.trim();
                   final password = _passwordController.text.trim();
 
-                  if (!_isEmailValid(email)) {
+                  if (!AuthValidators.isValidPhone(phone)) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Enter a valid email address.'),
+                        content: Text('Enter a valid phone number.'),
                       ),
                     );
                     return;
                   }
 
-                  if (password.length < 6) {
+                  if (!AuthValidators.isValidPassword(password)) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
@@ -92,13 +90,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   await ref
                       .read(authViewModelProvider.notifier)
-                      .loginWithEmailPassword(email: email, password: password);
+                      .loginWithPhonePassword(phone: phone, password: password);
                 },
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => context.push(RoutePaths.forgotPassword),
+                  child: const Text('Forgot Password?'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Don't have an account?"),
+                  TextButton(
+                    onPressed: () => context.push(RoutePaths.register),
+                    child: const Text('Register'),
+                  ),
+                ],
               ),
               if (state.error != null) ...[
                 const SizedBox(height: 16),
                 AppErrorState(message: state.error!),
               ],
+              const SizedBox(height: 8),
+              Text(
+                'Demo user: 9800000000 / 123456',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ],
           ),
         ),
